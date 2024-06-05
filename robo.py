@@ -1,9 +1,9 @@
+import os
 import xlrd
 from openpyxl import load_workbook, Workbook
 from openpyxl.styles import Alignment
-from openpyxl.utils.cell import get_column_letter
 
-def converter_e_processar(arquivo_entrada, arquivo_saida):
+def converter_e_processar(arquivo_entrada, arquivo_saida, arquivo_destino):
     # Abrir o arquivo .xls para leitura
     wb_xls = xlrd.open_workbook(arquivo_entrada)
     ws_xls = wb_xls.sheet_by_index(0)
@@ -19,7 +19,7 @@ def converter_e_processar(arquivo_entrada, arquivo_saida):
 
     # Excluir as primeiras 7 linhas
     ws_xlsx.delete_rows(1, 7)
-
+    
     # Salvar o arquivo .xlsx
     wb_xlsx.save(arquivo_saida)
 
@@ -77,26 +77,32 @@ def converter_e_processar(arquivo_entrada, arquivo_saida):
     # Salvar as alterações
     wb.save(arquivo_saida)
 
-    # Copiar a última linha para a outra planilha
-    wb_destino = load_workbook(r"C:\Users\tiago\botao\Movimentação_FLorence_Mensal.xlsx")
+    # Verificar se o arquivo de destino existe
+    if not os.path.exists(arquivo_destino):
+        # Se não existir, criar um novo arquivo
+        wb_destino = Workbook()
+        wb_destino.save(arquivo_destino)
+
+    # Abrir o arquivo de destino
+    wb_destino = load_workbook(arquivo_destino)
     ws_destino = wb_destino.active
     
-    # Obter a última linha da planilha de origem
-    ws_origem = wb.active
-    ultima_linha_origem = ws_origem.max_row
-    ultima_coluna_origem = ws_origem.max_column
+    # Obter a última linha da planilha de destino para começar a copiar os dados
+    ultima_linha_destino = ws_destino.max_row
 
-    # Copiar os valores da última linha da planilha de origem para a planilha de destino
-    for col in range(1, ultima_coluna_origem + 1):
-        valor_celula_origem = ws_origem.cell(row=ultima_linha_origem, column=col).value
-        ws_destino.cell(row=ws_destino.max_row + 1, column=col).value = valor_celula_origem
+    # Copiar os valores da planilha de origem para a planilha de destino
+    for row in range(1, ws.max_row + 1):
+        for col in range(1, ws.max_column + 1):
+            valor_celula_origem = ws.cell(row=row, column=col).value
+            ws_destino.cell(row=ultima_linha_destino + row, column=col).value = valor_celula_origem
 
     # Salvar a planilha de destino com as alterações
-    wb_destino.save(r"C:\Users\tiago\botao\Movimentação_FLorence_Mensal.xlsx")
+    wb_destino.save(arquivo_destino)
 
-# Caminho do arquivo de entrada .xls e do arquivo de saída .xlsx
+# Caminho do arquivo de entrada .xls, do arquivo de saída .xlsx, e do arquivo de destino .xlsx
 arquivo_entrada_xls = r"C:\Users\tiago\botao\Movimentos.xls"
 arquivo_saida_xlsx = r"C:\Users\tiago\botao\Movimentos_processado.xlsx"
+arquivo_destino_xlsx = r"C:\Users\tiago\botao\Movimentação_FLorence_Mensal.xlsx"
 
 # Chamar a função para converter, processar e remover as linhas sem conteúdo na coluna I do arquivo .xls
-converter_e_processar(arquivo_entrada_xls, arquivo_saida_xlsx)
+converter_e_processar(arquivo_entrada_xls, arquivo_saida_xlsx, arquivo_destino_xlsx)
